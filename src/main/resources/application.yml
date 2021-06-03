@@ -55,5 +55,5 @@ spring:
     ansi:
       enabled: never
   application:
-    name: ONS CensusMockCaseApiService
+    name: ONS SDC MockCaseService
 
