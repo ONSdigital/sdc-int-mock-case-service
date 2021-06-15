@@ -1,11 +1,14 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mockcaseapi
+  name: mock-case
   labels:
-    app: mockcaseapi
+    app: mock-case
 spec:
-  replicas: 1
+  replicas: [REPLICAS]
+  selector:
+    matchLabels:
+      app: mock-case
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -13,21 +16,21 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      name: mockcaseapi
+      name: mock-case
       labels:
-        app: mockcaseapi
+        app: mock-case
     spec:
       containers:
-      - name: mockcaseapi
-        image: eu.gcr.io/census-gcr-int/census-mock-case-api-service:0.19.0-rc.1
+      - name: mock-case
+        image: eu.gcr.io/[GCR]/mock-case:[CONTAINER_VERSION]
         imagePullPolicy: Always
         resources:
           requests:
-            cpu: "0.1"
-            memory: "512Mi"
+            cpu: "[CPU_REQ]"
+            memory: "[MEM_REQ]"
           limits:
-            cpu: "0.5"
-            memory: "1024Mi"
+            cpu: "[CPU_MAX]"
+            memory: "[MEM_MAX]"
         readinessProbe:
           httpGet:
             path: /info
@@ -50,10 +53,11 @@ spec:
         env:
         - name: JAVA_TOOL_OPTIONS
           value: "-Dlogging.useJson=true
-            -Dspring.profiles.active=test
+            -Dspring.profiles.active=[ENV]
             -Dlogging.level.uk.gov.ons.ctp=DEBUG
             -Dlogging.level.org.springframework=WARN
-            -Dendpoints.autoconfig.enabled=false-Dendpoints.beans.enabled=false
+            -Dendpoints.autoconfig.enabled=false
+            -Dendpoints.beans.enabled=false
             -Dendpoints.configprops.enabled=false
             -Dendpoints.dump.enabled=false
             -Dendpoints.env.enabled=false
