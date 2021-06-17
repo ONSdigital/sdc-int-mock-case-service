@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mockcaseapi
+  name: mock-case
   labels:
-    app: mockcaseapi
+    app: mock-case
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mockcaseapi
+      app: mock-case
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -16,13 +16,13 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      name: mockcaseapi
+      name: mock-case
       labels:
-        app: mockcaseapi
+        app: mock-case
     spec:
       containers:
-      - name: mockcaseapi
-        image: eu.gcr.io/census-gcr-int/census-mock-case-api-service:0.35.0-rc.1
+      - name: mock-case
+        image: eu.gcr.io/sdc-int-ci/mock-case:0.35.0-rc.1
         imagePullPolicy: Always
         resources:
           requests:
