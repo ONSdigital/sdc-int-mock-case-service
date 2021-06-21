@@ -12,7 +12,7 @@
     <groupId>ons.sdc.int.common</groupId>
     <artifactId>common</artifactId>
     <!-- change this to the version of ALL common libs to be used by this build -->
-    <version>1.0.4</version>
+    <version>1.0.7</version>
   </parent>
 
   <name>SDC : Integrations Mock Case API Service</name>
@@ -24,51 +24,11 @@
   </properties>
 
   <scm>
-    <connection>scm:git:https://github.com/ONSdigital/sdc-int-mock-case-service</connection>
-    <developerConnection>scm:git:https://github.com/ONSdigital/sdc-int-mock-case-service</developerConnection>
-    <url>https://github.com/ONSdigital/sdc-int-mock-case-service</url>
+    <connection>scm:git:ssh://github.com/ONSdigital/sdc-int-mock-case-service</connection>
+    <developerConnection>scm:git:ssh://github.com/ONSdigital/sdc-int-mock-case-service</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
-  <profiles>
-    <profile>
-      <id>artifactory</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-
-      <repositories>
-        <repository>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-          <id>central</id>
-          <name>External Virtual Repository</name>
-          <url>https://ons.jfrog.io/ons/external-repos</url>
-        </repository>
-        <repository>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-          <id>releases</id>
-          <name>libs-release</name>
-          <url>https://ons.jfrog.io/ons/libs-releases-local</url>
-        </repository>
-        <repository>
-          <id>snapshots</id>
-          <url>https://ons.jfrog.io/ons/libs-snapshots-local/</url>
-        </repository>
-      </repositories>
-
-      <pluginRepositories>
-        <pluginRepository>
-          <id>central</id>
-          <name>External Virtual Repository</name>
-          <url>https://ons.jfrog.io/ons/external-repos</url>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-  </profiles>
 
   <dependencies>
     <!-- Spring dependencies -->
@@ -251,6 +211,14 @@
   <build>
     <defaultGoal>clean install</defaultGoal>
 
+    <extensions>
+      <extension>
+        <groupId>com.google.cloud.artifactregistry</groupId>
+        <artifactId>artifactregistry-maven-wagon</artifactId>
+        <version>2.1.1</version>
+      </extension>
+    </extensions>
+    
     <plugins>
       <plugin>
         <groupId>com.dkanejs.maven.plugins</groupId>
@@ -449,4 +417,38 @@
       </resource>
     </resources>
   </build>
+
+  <repositories>
+    <repository>
+      <id>artifact-release-registry</id>
+      <url>artifactregistry://europe-west2-maven.pkg.dev/ons-ci-int/int-maven-release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>artifact-snapshot-registry</id>
+      <url>artifactregistry://europe-west2-maven.pkg.dev/ons-ci-int/int-maven-snapshot</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>artifact-snapshot-registry</id>
+      <url>artifactregistry://europe-west2-maven.pkg.dev/ons-ci-int/int-maven-snapshot</url>
+    </snapshotRepository>
+    <repository>
+      <id>artifact-release-registry</id>
+      <url>artifactregistry://europe-west2-maven.pkg.dev/ons-ci-int/int-maven-release</url>
+    </repository>
+  </distributionManagement>
 </project>
