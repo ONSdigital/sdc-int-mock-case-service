@@ -1,7 +1,7 @@
 package uk.gov.ons.ctp.integration.mockcaseapiservice.endpoint;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
+import static uk.gov.ons.ctp.common.log.ScopedStructuredArguments.kv;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,11 +41,10 @@ import uk.gov.ons.ctp.integration.mockcaseapiservice.utility.FailureSimulator;
 import uk.gov.ons.ctp.integration.mockcaseapiservice.validation.RequestValidator;
 
 /** Provides mock endpoints for the case service. */
+@Slf4j
 @RestController
 @RequestMapping(value = "/cases", produces = "application/json")
 public final class CaseServiceMockStub implements CTPEndpoint {
-  private static final Logger log = LoggerFactory.getLogger(CaseServiceMockStub.class);
-
   private static final int UAC_LENGTH = 16;
 
   private static volatile long FIND_CASE_BY_UPRN_SLEEP_TIME = 10;
@@ -79,7 +79,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   public ResponseEntity<CaseContainerDTO> findCaseById(
       @PathVariable("caseId") final UUID caseId,
       @RequestParam(value = "caseEvents", required = false) boolean includeCaseEvents) {
-    log.with("case_id", caseId).debug("Entering findCaseById");
+    log.debug("Entering findCaseById", kv("case_id", caseId));
 
     FailureSimulator.optionallyTriggerFailure(caseId.toString(), 400, 401, 404, 500);
     CaseContainerDTO caseDetails = casesConfig.getCaseByUUID(caseId.toString());
@@ -96,7 +96,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
    */
   @GetMapping(value = "/ccs/postcode/{postcode}")
   public List<CaseContainerDTO> findCcsCasesByPostcode(@PathVariable("postcode") String postcode) {
-    log.with("postcode", postcode).debug("Entering findCcsCasesByPostcode");
+    log.debug("Entering findCcsCasesByPostcode", kv("postcode", postcode));
     FailureSimulator.optionallyTriggerFailure(postcode, 400, 401, 404, 500);
     List<CaseContainerDTO> ccsCases = casesConfig.getCcsCasesByPostcode(postcode);
     nullTestThrowsException(ccsCases);
@@ -112,7 +112,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   @RequestMapping(value = "/ccs/{caseId}/qid", method = RequestMethod.GET)
   public ResponseEntity<QuestionnaireIdDTO> findQuestionnaireIdByCaseId(
       @PathVariable("caseId") final UUID caseId) {
-    log.with("case_id", caseId).debug("Entering findQuestionnaireIdByCaseId");
+    log.debug("Entering findQuestionnaireIdByCaseId", kv("case_id", caseId));
 
     FailureSimulator.optionallyTriggerFailure(caseId.toString(), 400, 401, 404, 500);
     QuestionnaireIdDTO questionnaireId = questionnairesConfig.getQuestionnaire(caseId.toString());
@@ -131,10 +131,11 @@ public final class CaseServiceMockStub implements CTPEndpoint {
       @PathVariable("caseId") final UUID caseId,
       @RequestParam(required = false) final boolean individual,
       @RequestParam(required = false) final UUID individualCaseId) {
-    log.with("case_id", caseId)
-        .with("individual", individual)
-        .with("individualCaseId", individualCaseId)
-        .debug("Entering newQuestionnaireIdForCase");
+    log.debug(
+        "Entering newQuestionnaireIdForCase",
+        kv("case_id", caseId),
+        kv("individual", individual),
+        kv("individualCaseId", individualCaseId));
 
     FailureSimulator.optionallyTriggerFailure(caseId.toString(), 400, 401, 404, 500);
 
@@ -165,12 +166,12 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   public ResponseEntity<List<CaseContainerDTO>> findCaseByUPRN(
       @PathVariable(value = "uprn") final UniquePropertyReferenceNumber uprn) {
     int numConcurrent = concurrentCounterFindCaseByUPRN.incrementAndGet();
-    log.with("uprn", uprn).debug("Entering findCaseByUPRN: ConcurrentCount: " + numConcurrent);
+    log.debug("Entering findCaseByUPRN: ConcurrentCount: " + numConcurrent, kv("uprn", uprn));
 
     try {
       Thread.sleep(FIND_CASE_BY_UPRN_SLEEP_TIME);
     } catch (InterruptedException e) {
-      log.error(e, "Sleep interrupted");
+      log.error("Sleep interrupted", e);
     }
 
     FailureSimulator.optionallyTriggerFailure(Long.toString(uprn.getValue()), 400, 401, 404, 500);
@@ -186,9 +187,10 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   @RequestMapping(value = "/ref/{ref}", method = RequestMethod.GET)
   public ResponseEntity<CaseContainerDTO> findCaseByCaseReference(
       @PathVariable(value = "ref") final long ref, @Valid CaseQueryRequestDTO requestParamsDTO) {
-    log.with("ref", ref)
-        .with("caseEvents", requestParamsDTO.getCaseEvents())
-        .info("Entering GET getCaseByCaseReference");
+    log.info(
+        "Entering GET getCaseByCaseReference",
+        kv("ref", ref),
+        kv("caseEvents", requestParamsDTO.getCaseEvents()));
 
     FailureSimulator.optionallyTriggerFailure(Long.toString(ref), 400, 401, 404, 500);
 
@@ -225,7 +227,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   public ResponseEntity<ResponseDTO> addOrReplaceCaseData(
       @RequestBody List<CaseContainerDTO> requestBody) throws CTPException {
 
-    log.with("requestBody", requestBody).info("Entering POST addOrReplaceCaseData");
+    log.info("Entering POST addOrReplaceCaseData", kv("requestBody", requestBody));
     casesConfig.addOrReplaceData(requestBody);
 
     return ResponseEntity.ok(createResponseDTO("MockCaseSaveService"));
@@ -243,7 +245,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   public ResponseEntity<ResponseDTO> addOrReplaceCcsCaseData(
       @RequestBody List<CaseContainerDTO> requestBody) throws CTPException {
 
-    log.with("requestBody", requestBody).info("Entering POST addOrReplaceCcsCaseData");
+    log.info("Entering POST addOrReplaceCcsCaseData", kv("requestBody", requestBody));
     casesConfig.addOrReplaceCcsData(requestBody);
 
     return ResponseEntity.ok(createResponseDTO("MockCcsCaseSaveService"));
@@ -278,7 +280,7 @@ public final class CaseServiceMockStub implements CTPEndpoint {
   public ResponseEntity<ResponseDTO> addQuestionnaireData(
       @Valid @RequestBody List<QuestionnaireIdDTO> requestBody) throws CTPException {
 
-    log.with("requestBody", requestBody).info("Entering POST addQData");
+    log.info("Entering POST addQData", kv("requestBody", requestBody));
     questionnairesConfig.addData(requestBody);
     return ResponseEntity.ok(createResponseDTO("MockQuestionnaireAddService"));
   }
